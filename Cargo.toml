@@ -1,0 +1,19 @@
+[package]
+name = "furbooru"
+version = "0.1.0"
+authors = ["Christine Dodrill <me@christine.website>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0"
+reqwest = { version = "0.10", features = ["json"] }
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+
+[dev-dependencies]
+httptest = "0"
+log = "0"
+tokio = { version = "0.2", features = ["macros"] }
+pretty_env_logger = "0"
