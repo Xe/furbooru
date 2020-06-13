@@ -5,7 +5,9 @@ use furbooru::{Client, Message};
 async fn main() -> Result<()> {
     pretty_env_logger::try_init()?;
     let cli = Client::new("firehose-example", &std::env::var("FURBOORU_API_KEY")?)?;
-    cli.firehose(callback).await?
+    cli.firehose(callback).await?;
+
+    Ok(())
 }
 
 async fn callback(msg: Message) -> Result<()> {
