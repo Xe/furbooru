@@ -1,5 +1,8 @@
 # furbooru
 
+[![built with nix](https://builtwithnix.org/badge.svg)](https://builtwithnix.org)
+![Rust](https://github.com/Xe/furbooru/workflows/Rust/badge.svg)
+
 A [Furbooru](https://furbooru.org) and [Derpibooru](https://derpibooru.org) client
 written in Rust. The APIs for these two sites are near identical, so this crate
 can work with both; however it is optimized for Furbooru. Any time Furbooru diverges
