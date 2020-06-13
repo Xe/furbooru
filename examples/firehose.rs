@@ -14,5 +14,15 @@ async fn main() -> Result<()> {
 async fn callback(msg: Message) -> Result<()> {
     println!("{:?}", msg);
 
+    match msg {
+        Message::ImageCreate(img) => {
+            println!("new image: {} {} {}", img.id, img.name, img.view_url);
+        }
+        Message::CommentCreate(cmt) => {
+            println!("new comment on image {}: {}", cmt.image_id, cmt.body);
+        }
+        _ => {}
+    }
+
     Ok(())
 }
