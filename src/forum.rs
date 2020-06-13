@@ -2,16 +2,17 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ResponseList {
+struct ResponseList {
     pub forums: Vec<Forum>,
     pub total: i64,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Response {
+struct Response {
     pub forum: Forum,
 }
 
+/// A discussion forum.
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Forum {
     pub description: String,
@@ -22,6 +23,7 @@ pub struct Forum {
 }
 
 impl crate::Client {
+    /// Get the list of forums.
     pub async fn forums(&self) -> Result<Vec<Forum>> {
         let resp: ResponseList = self
             .request(reqwest::Method::GET, "api/v1/json/forums")
@@ -33,6 +35,7 @@ impl crate::Client {
         Ok(resp.forums)
     }
 
+    /// Get details about an individual forum by ID.
     pub async fn forum<T: Into<String>>(&self, id: T) -> Result<Forum> {
         let resp: Response = self
             .request(

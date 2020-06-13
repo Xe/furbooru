@@ -11,6 +11,7 @@ struct ResponseList {
     posts: Vec<Post>,
 }
 
+/// A forum post
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Post {
     pub author: String,
@@ -25,6 +26,7 @@ pub struct Post {
 }
 
 impl crate::Client {
+    /// Fetches a forum post by ID.
     pub async fn post(&self, id: u64) -> Result<Post> {
         let resp: Response = self
             .request(reqwest::Method::GET, &format!("api/v1/json/posts/{}", id))
@@ -36,6 +38,7 @@ impl crate::Client {
         Ok(resp.post)
     }
 
+    /// Fetches page n of posts in a thread in a forum.
     pub async fn forum_thread<T: Into<String>>(
         &self,
         forum: T,

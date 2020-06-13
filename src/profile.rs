@@ -6,6 +6,7 @@ struct Response {
     pub user: User,
 }
 
+/// User profile information.
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct User {
     pub avatar_url: String,
@@ -23,6 +24,7 @@ pub struct User {
     pub uploads_count: i64,
 }
 
+/// A badge that was awarded to a user.
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Award {
     pub awarded_on: String,
@@ -32,6 +34,7 @@ pub struct Award {
     pub title: String,
 }
 
+/// Tags that this user is linked to.
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Link {
     pub created_at: String,
@@ -41,6 +44,7 @@ pub struct Link {
 }
 
 impl crate::Client {
+    /// Get information about a user's profile by ID.
     pub async fn profile(&self, id: u64) -> Result<User> {
         let resp: Response = self
             .request(

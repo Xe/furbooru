@@ -11,6 +11,7 @@ struct ResponseList {
     filters: Vec<Filter>,
 }
 
+/// An image filter.
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Filter {
     pub description: String,
@@ -27,6 +28,7 @@ pub struct Filter {
 }
 
 impl crate::Client {
+    /// Fetch a filter by its ID.
     pub async fn filter(&self, id: u64) -> Result<Filter> {
         let resp: Response = self
             .request(reqwest::Method::GET, &format!("api/v1/json/filters/{}", id))
@@ -38,6 +40,7 @@ impl crate::Client {
         Ok(resp.filter)
     }
 
+    /// Fetch the list of system filters.
     pub async fn system_filters(&self) -> Result<Vec<Filter>> {
         let resp: ResponseList = self
             .request(reqwest::Method::GET, "api/v1/json/filters/system")
@@ -50,6 +53,7 @@ impl crate::Client {
         Ok(resp.filters)
     }
 
+    /// Fetch the list of user-level filters.
     pub async fn user_filters(&self, page: u64) -> Result<Vec<Filter>> {
         let mut req = self.request(reqwest::Method::GET, "api/v1/json/filters/user");
 

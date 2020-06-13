@@ -11,6 +11,7 @@ struct ResponseList {
     comments: Vec<Comment>,
 }
 
+/// A comment on an image.
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Comment {
     pub author: String,
@@ -26,6 +27,7 @@ pub struct Comment {
 }
 
 impl crate::Client {
+    /// Fetch an individual comment by ID.
     pub async fn comment(&self, id: u64) -> Result<Comment> {
         let resp: Response = self
             .request(
@@ -40,6 +42,7 @@ impl crate::Client {
         Ok(resp.comment)
     }
 
+    /// Search for comments.
     pub async fn comment_search<T: Into<String>>(
         &self,
         query: T,

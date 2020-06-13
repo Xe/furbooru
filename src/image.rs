@@ -70,6 +70,7 @@ pub struct Representations {
 }
 
 impl crate::Client {
+    /// Get information about the currently featured image.
     pub async fn featured_image(&self) -> Result<Image> {
         let resp: Response = self
             .request(reqwest::Method::GET, "api/v1/json/images/featured")
@@ -82,6 +83,7 @@ impl crate::Client {
         Ok(resp.image)
     }
 
+    /// Get information about an image by ID.
     pub async fn image(&self, id: u64) -> Result<Image> {
         let resp: Response = self
             .request(reqwest::Method::GET, &format!("api/v1/json/images/{}", id))
@@ -94,6 +96,7 @@ impl crate::Client {
         Ok(resp.image)
     }
 
+    /// Search for images that match a set of tags.
     pub async fn image_search<T: Into<String>>(&self, q: T, page: u64) -> Result<Vec<Image>> {
         let mut req = self
             .request(reqwest::Method::GET, &format!("api/v1/json/search/images"))
