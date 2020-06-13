@@ -2,6 +2,9 @@
 
 [![built with nix](https://builtwithnix.org/badge.svg)](https://builtwithnix.org)
 ![Rust](https://github.com/Xe/furbooru/workflows/Rust/badge.svg)
+![MIT License](https://img.shields.io/github/license/Xe/furbooru)
+[![Crates.io](https://img.shields.io/crates/v/furbooru)](https://crates.io/crates/furbooru)
+[![docs](https://img.shields.io/badge/docs-furbooru-orange)](https://docs.rs/furbooru)
 
 A [Furbooru](https://furbooru.org) and [Derpibooru](https://derpibooru.org) client
 written in Rust. The APIs for these two sites are near identical, so this crate
