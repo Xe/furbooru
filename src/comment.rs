@@ -2,13 +2,13 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-struct Response {
-    comment: Comment,
+pub(crate) struct Response {
+    pub comment: Comment,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-struct ResponseList {
-    comments: Vec<Comment>,
+pub(crate) struct ResponseList {
+    pub comments: Vec<Comment>,
 }
 
 /// A comment on an image.

@@ -2,13 +2,13 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-struct ResponseList {
+pub(crate) struct ResponseList {
     pub forums: Vec<Forum>,
     pub total: i64,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-struct Response {
+pub(crate) struct Response {
     pub forum: Forum,
 }
 

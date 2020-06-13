@@ -2,13 +2,13 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-struct Response {
-    filter: Filter,
+pub(crate) struct Response {
+    pub filter: Filter,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-struct ResponseList {
-    filters: Vec<Filter>,
+pub(crate) struct ResponseList {
+    pub filters: Vec<Filter>,
 }
 
 /// An image filter.

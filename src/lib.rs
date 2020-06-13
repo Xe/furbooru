@@ -41,15 +41,15 @@ pub mod profile;
 pub mod tag;
 pub mod topic;
 
-pub use comment::*;
-pub use filter::*;
-pub use firehose::*;
-pub use forum::*;
-pub use image::*;
-pub use post::*;
-pub use profile::*;
-pub use tag::*;
-pub use topic::*;
+pub use comment::Comment;
+pub use filter::Filter;
+pub use firehose::Message;
+pub use forum::Forum;
+pub use image::{Image, Intensities, Representations};
+pub use post::Post;
+pub use profile::{Award, Link, User};
+pub use tag::Tag;
+pub use topic::Topic;
 
 pub struct Client {
     pub(crate) cli: reqwest::Client,

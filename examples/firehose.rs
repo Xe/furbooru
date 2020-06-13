@@ -3,9 +3,11 @@ use furbooru::{Client, Message};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let cli = Client::new("firehose-example", &std::env::var("FURRYBOORU_API_TOKEN")?)?;
+    pretty_env_logger::try_init()?;
+    let cli = Client::new("firehose-example", &std::env::var("FURBOORU_API_KEY")?)?;
     cli.firehose(callback).await?;
 
+    log::info!("this should be impossible");
     Ok(())
 }
 
