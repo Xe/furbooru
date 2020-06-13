@@ -3,6 +3,11 @@ name = "furbooru"
 version = "0.1.0"
 authors = ["Christine Dodrill <me@christine.website>"]
 edition = "2018"
+license-file = "LICENSE"
+description = "An async Furbooru/Derpibooru client for Rust"
+homepage = "https://github.com/Xe/furbooru"
+repository = "https://github.com/Xe/furbooru"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
