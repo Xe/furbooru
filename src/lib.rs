@@ -33,6 +33,7 @@ does unwanted things like violating rate limits.
 
 pub mod comment;
 pub mod filter;
+pub mod firehose;
 pub mod forum;
 pub mod image;
 pub mod post;
@@ -42,6 +43,7 @@ pub mod topic;
 
 pub use comment::*;
 pub use filter::*;
+pub use firehose::*;
 pub use forum::*;
 pub use image::*;
 pub use post::*;
