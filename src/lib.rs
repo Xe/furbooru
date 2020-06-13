@@ -1,7 +1,10 @@
-use reqwest;
-use serde::{Deserialize, Serialize};
-
+pub mod comment;
 pub mod image;
+pub mod tag;
+
+pub use comment::*;
+pub use image::*;
+pub use tag::*;
 
 pub struct Client {
     pub(crate) cli: reqwest::Client,
@@ -26,7 +29,7 @@ impl Client {
         let cli = Client {
             cli: cli.into(),
             token: token.into(),
-            api_base: "https://furbooru.org".into(),
+            api_base: "https://furbooru.org/".into(),
         };
         Ok(cli)
     }

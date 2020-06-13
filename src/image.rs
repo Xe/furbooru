@@ -1,4 +1,4 @@
-use reqwest;
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -11,14 +11,14 @@ pub struct Image {
     pub duplicate_of: Option<u64>,
     pub tag_count: i64,
     pub spoilered: bool,
-    pub uploader: String,
+    pub uploader: Option<String>,
     pub deletion_reason: Option<String>,
     pub width: i64,
     pub processed: bool,
     pub created_at: String,
     pub orig_sha512_hash: String,
     pub view_url: String,
-    pub uploader_id: i64,
+    pub uploader_id: Option<i64>,
     pub intensities: Intensities,
     pub score: i64,
     pub height: i64,
@@ -60,9 +60,21 @@ pub struct Representations {
 }
 
 impl crate::Client {
-    async fn featured_image(&self) -> anyhow::Result<Image> {
+    pub async fn featured_image(&self) -> Result<Image> {
         let resp: Response = self
             .request(reqwest::Method::GET, "api/v1/json/images/featured")
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?;
+
+        Ok(resp.image)
+    }
+
+    pub async fn image(&self, id: u64) -> Result<Image> {
+        let resp: Response = self
+            .request(reqwest::Method::GET, &format!("api/v1/json/images/{}", id))
             .send()
             .await?
             .error_for_status()?
@@ -82,6 +94,7 @@ struct Response {
 #[cfg(test)]
 mod tests {
     use httptest::{matchers::*, responders::*, Expectation, Server};
+
     #[tokio::test]
     async fn featured_image() {
         let _ = pretty_env_logger::try_init();
@@ -96,5 +109,21 @@ mod tests {
         let cli =
             crate::Client::with_baseurl("test", "42069", &format!("{}", server.url("/"))).unwrap();
         cli.featured_image().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn image() {
+        let _ = pretty_env_logger::try_init();
+        let data: serde_json::Value =
+            serde_json::from_slice(include_bytes!("../testdata/image_2336.json")).unwrap();
+        let server = Server::run();
+        server.expect(
+            Expectation::matching(request::method_path("GET", "/api/v1/json/images/2336"))
+                .respond_with(json_encoded(data)),
+        );
+
+        let cli =
+            crate::Client::with_baseurl("test", "42069", &format!("{}", server.url("/"))).unwrap();
+        cli.image(2336).await.unwrap();
     }
 }
