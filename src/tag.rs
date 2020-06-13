@@ -7,11 +7,16 @@ struct Response {
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+struct ResponseList {
+    tags: Vec<Tag>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Tag {
     pub aliased_tag: Option<String>,
     pub aliases: Option<Vec<String>>,
     pub category: String,
-    pub description: String,
+    pub description: Option<String>,
     pub dnp_entries: Vec<::serde_json::Value>, // TODO(Xe): update this when furbooru has a DNP entry
     pub id: i64,
     pub images: i64,
@@ -20,7 +25,7 @@ pub struct Tag {
     pub name: String,
     pub name_in_namespace: String,
     pub namespace: Option<String>,
-    pub short_description: String,
+    pub short_description: Option<String>,
     pub slug: String,
     pub spoiler_image_uri: Option<String>,
 }
@@ -36,6 +41,20 @@ impl crate::Client {
             .json()
             .await?;
         Ok(resp.tag)
+    }
+
+    pub async fn tag_search<T: Into<String>>(&self, q: T, page: u64) -> Result<Vec<Tag>> {
+        let mut req = self
+            .request(reqwest::Method::GET, &format!("api/v1/json/search/tags"))
+            .query(&[("q", q.into())]);
+
+        if page != 0 {
+            req = req.query(&[("page", format!("{}", page))]);
+        }
+
+        let resp: ResponseList = req.send().await?.error_for_status()?.json().await?;
+
+        Ok(resp.tags)
     }
 }
 
@@ -61,5 +80,21 @@ mod tests {
         let cli =
             crate::Client::with_baseurl("test", "42069", &format!("{}", server.url("/"))).unwrap();
         cli.tag("artist:atryl").await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn tag_search() {
+        let _ = pretty_env_logger::try_init();
+        let data: serde_json::Value =
+            serde_json::from_slice(include_bytes!("../testdata/search_tags.json")).unwrap();
+        let server = Server::run();
+        server.expect(
+            Expectation::matching(request::method_path("GET", "/api/v1/json/search/tags"))
+                .respond_with(json_encoded(data)),
+        );
+
+        let cli =
+            crate::Client::with_baseurl("test", "42069", &format!("{}", server.url("/"))).unwrap();
+        cli.tag_search("orca", 0).await.unwrap();
     }
 }

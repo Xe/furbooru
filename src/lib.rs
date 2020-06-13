@@ -1,16 +1,20 @@
 pub mod comment;
 pub mod filter;
+pub mod forum;
 pub mod image;
 pub mod post;
 pub mod profile;
 pub mod tag;
+pub mod topic;
 
 pub use comment::*;
 pub use filter::*;
+pub use forum::*;
 pub use image::*;
 pub use post::*;
 pub use profile::*;
 pub use tag::*;
+pub use topic::*;
 
 pub struct Client {
     pub(crate) cli: reqwest::Client,

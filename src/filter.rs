@@ -49,6 +49,18 @@ impl crate::Client {
 
         Ok(resp.filters)
     }
+
+    pub async fn user_filters(&self, page: u64) -> Result<Vec<Filter>> {
+        let mut req = self.request(reqwest::Method::GET, "api/v1/json/filters/user");
+
+        if page != 0 {
+            req = req.query(&[("page", format!("{}", page))])
+        }
+
+        let resp: ResponseList = req.send().await?.error_for_status()?.json().await?;
+
+        Ok(resp.filters)
+    }
 }
 
 #[cfg(test)]
@@ -85,5 +97,21 @@ mod tests {
         let cli =
             crate::Client::with_baseurl("test", "42069", &format!("{}", server.url("/"))).unwrap();
         cli.system_filters().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn user_filters() {
+        let _ = pretty_env_logger::try_init();
+        let data: serde_json::Value =
+            serde_json::from_slice(include_bytes!("../testdata/filters_system.json")).unwrap();
+        let server = Server::run();
+        server.expect(
+            Expectation::matching(request::method_path("GET", "/api/v1/json/filters/user"))
+                .respond_with(json_encoded(data)),
+        );
+
+        let cli =
+            crate::Client::with_baseurl("test", "42069", &format!("{}", server.url("/"))).unwrap();
+        cli.user_filters(0).await.unwrap();
     }
 }

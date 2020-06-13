@@ -7,6 +7,11 @@ struct Response {
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+struct ResponseList {
+    comments: Vec<Comment>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Comment {
     pub author: String,
     pub avatar: String,
@@ -17,7 +22,7 @@ pub struct Comment {
     pub id: i64,
     pub image_id: i64,
     pub updated_at: String,
-    pub user_id: i64,
+    pub user_id: Option<i64>,
 }
 
 impl crate::Client {
@@ -33,6 +38,23 @@ impl crate::Client {
             .json()
             .await?;
         Ok(resp.comment)
+    }
+
+    pub async fn comment_search<T: Into<String>>(
+        &self,
+        query: T,
+        page: u64,
+    ) -> Result<Vec<Comment>> {
+        let mut req = self
+            .request(reqwest::Method::GET, "api/v1/json/search/comments")
+            .query(&[("q", query.into())]);
+
+        if page != 0 {
+            req = req.query(&[("page", format!("{}", page))])
+        }
+
+        let resp: ResponseList = req.send().await?.error_for_status()?.json().await?;
+        Ok(resp.comments)
     }
 }
 
@@ -54,5 +76,21 @@ mod tests {
         let cli =
             crate::Client::with_baseurl("test", "42069", &format!("{}", server.url("/"))).unwrap();
         cli.comment(1).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn comment_search() {
+        let _ = pretty_env_logger::try_init();
+        let data: serde_json::Value =
+            serde_json::from_slice(include_bytes!("../testdata/search_comments.json")).unwrap();
+        let server = Server::run();
+        server.expect(
+            Expectation::matching(request::method_path("GET", "/api/v1/json/search/comments"))
+                .respond_with(json_encoded(data)),
+        );
+
+        let cli =
+            crate::Client::with_baseurl("test", "42069", &format!("{}", server.url("/"))).unwrap();
+        cli.comment_search("*", 0).await.unwrap();
     }
 }

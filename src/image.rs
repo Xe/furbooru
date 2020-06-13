@@ -1,6 +1,16 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize)]
+struct Response {
+    image: Image,
+}
+
+#[derive(Serialize, Deserialize)]
+struct ResponseList {
+    images: Vec<Image>,
+}
+
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Image {
     pub name: String,
@@ -35,7 +45,7 @@ pub struct Image {
     pub aspect_ratio: f64,
     pub hidden_from_users: bool,
     pub sha512_hash: String,
-    pub source_url: String,
+    pub source_url: Option<String>,
     pub description: String,
 }
 
@@ -83,12 +93,20 @@ impl crate::Client {
 
         Ok(resp.image)
     }
-}
 
-#[derive(Serialize, Deserialize)]
-struct Response {
-    image: Image,
-    interactions: Vec<serde_json::Value>,
+    pub async fn image_search<T: Into<String>>(&self, q: T, page: u64) -> Result<Vec<Image>> {
+        let mut req = self
+            .request(reqwest::Method::GET, &format!("api/v1/json/search/images"))
+            .query(&[("q", q.into())]);
+
+        if page != 0 {
+            req = req.query(&[("page", format!("{}", page))]);
+        }
+
+        let resp: ResponseList = req.send().await?.error_for_status()?.json().await?;
+
+        Ok(resp.images)
+    }
 }
 
 #[cfg(test)]
@@ -125,5 +143,21 @@ mod tests {
         let cli =
             crate::Client::with_baseurl("test", "42069", &format!("{}", server.url("/"))).unwrap();
         cli.image(2336).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn image_search() {
+        let _ = pretty_env_logger::try_init();
+        let data: serde_json::Value =
+            serde_json::from_slice(include_bytes!("../testdata/search_images.json")).unwrap();
+        let server = Server::run();
+        server.expect(
+            Expectation::matching(request::method_path("GET", "/api/v1/json/search/images"))
+                .respond_with(json_encoded(data)),
+        );
+
+        let cli =
+            crate::Client::with_baseurl("test", "42069", &format!("{}", server.url("/"))).unwrap();
+        cli.image_search("orca", 0).await.unwrap();
     }
 }
