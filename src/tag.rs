@@ -3,12 +3,12 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct Response {
-    tag: Tag,
+    pub tag: Tag,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct ResponseList {
-    tags: Vec<Tag>,
+    pub tags: Vec<Tag>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]

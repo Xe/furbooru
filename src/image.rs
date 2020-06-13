@@ -2,13 +2,13 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
-struct Response {
-    image: Image,
+pub(crate) struct Response {
+    pub image: Image,
 }
 
 #[derive(Serialize, Deserialize)]
-struct ResponseList {
-    images: Vec<Image>,
+pub(crate) struct ResponseList {
+    pub images: Vec<Image>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -20,7 +20,7 @@ pub struct Image {
     pub downvotes: i64,
     pub duplicate_of: Option<u64>,
     pub tag_count: i64,
-    pub spoilered: bool,
+    pub spoilered: Option<bool>,
     pub uploader: Option<String>,
     pub deletion_reason: Option<String>,
     pub width: i64,
@@ -29,7 +29,7 @@ pub struct Image {
     pub orig_sha512_hash: String,
     pub view_url: String,
     pub uploader_id: Option<i64>,
-    pub intensities: Intensities,
+    pub intensities: Option<Intensities>,
     pub score: i64,
     pub height: i64,
     pub mime_type: String,
@@ -40,7 +40,7 @@ pub struct Image {
     pub id: i64,
     pub upvotes: i64,
     pub comment_count: i64,
-    pub representations: Representations,
+    pub representations: Option<Representations>,
     pub thumbnails_generated: bool,
     pub aspect_ratio: f64,
     pub hidden_from_users: bool,
