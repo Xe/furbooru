@@ -9,6 +9,7 @@ const JOIN_EVENT: &'static str = r#"[0, 0, "firehose", "phx_join", {}]"#;
 const HEARTBEAT_EVENT: &'static str = r#"[0, 0, "phoenix", "heartbeat", {}]"#;
 
 impl Client {
+    /// On every new site event, call callback. Explode if the callback explodes.
     pub async fn firehose<F, Fut>(&self, callback: F) -> Result<()>
     where
         F: Fn(Message) -> Fut,
@@ -18,13 +19,17 @@ impl Client {
         let mut u = url::Url::parse(&path)?;
         u.set_scheme("wss").unwrap();
         log::debug!("{}", u);
+
         let mut req = Request::builder()
             .uri(u.to_string())
             .header("Origin", self.api_base.clone())
             .body(())?;
+
         *req.version_mut() = Version::HTTP_11;
+
         let (mut ws_stream, _) = connect_async(req).await?;
         log::debug!("connected");
+
         let msg = protocol::Message::text(JOIN_EVENT);
         ws_stream.send(msg).await?;
         log::debug!("sent join event {}", JOIN_EVENT);
@@ -57,6 +62,7 @@ impl Client {
                 log::debug!("value is not array");
                 continue;
             }
+
             let val = val.as_array().unwrap();
             if val.len() != 5 {
                 log::debug!("value doesn't have right length");
@@ -67,6 +73,7 @@ impl Client {
                 log::debug!("val[2] and val[3] aren't strings");
                 continue;
             }
+
             let kind = val[2].as_str().unwrap();
             let event = val[3].as_str().unwrap();
             let obj = val[4].clone();
