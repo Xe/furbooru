@@ -32,3 +32,5 @@ Set the environment variables `API_USERNAME` and `API_TOKEN` to your
 Furbooru/Derpibooru username and API token respectively. Adding the username
 associated with your bot to each request can help the booru staff when your bot
 does unwanted things like violating rate limits.
+
+See the examples for more ideas.
