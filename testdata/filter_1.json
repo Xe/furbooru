@@ -1,0 +1,1 @@
+{"filter":{"description":"The site's default filter. Hides porn, and spoilers images containing saucy content, or artistic nudity.","hidden_complex":"score.lte:-5","hidden_tag_ids":[4,7,3,6],"id":1,"name":"Default","public":false,"spoilered_complex":null,"spoilered_tag_ids":[2,5,2496,6091,6092,2169],"system":true,"user_count":0,"user_id":null}}

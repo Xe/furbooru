@@ -27,11 +27,9 @@ pub struct Tag {
 
 impl crate::Client {
     pub async fn tag<T: Into<String>>(&self, name: T) -> Result<Tag> {
+        let name = name.into().replace(":", "-colon-");
         let resp: Response = self
-            .request(
-                reqwest::Method::GET,
-                &format!("api/v1/json/tags/{}", name.into()),
-            )
+            .request(reqwest::Method::GET, &format!("api/v1/json/tags/{}", name))
             .send()
             .await?
             .error_for_status()?
@@ -62,6 +60,6 @@ mod tests {
 
         let cli =
             crate::Client::with_baseurl("test", "42069", &format!("{}", server.url("/"))).unwrap();
-        cli.tag("artist-colon-atryl").await.unwrap();
+        cli.tag("artist:atryl").await.unwrap();
     }
 }

@@ -1,9 +1,15 @@
 pub mod comment;
+pub mod filter;
 pub mod image;
+pub mod post;
+pub mod profile;
 pub mod tag;
 
 pub use comment::*;
+pub use filter::*;
 pub use image::*;
+pub use post::*;
+pub use profile::*;
 pub use tag::*;
 
 pub struct Client {
