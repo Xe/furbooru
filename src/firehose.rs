@@ -1,5 +1,4 @@
 use crate::*;
-use anyhow::Result;
 use async_trait::async_trait;
 use futures_util::{SinkExt, StreamExt};
 use http::{version::Version, Request};
@@ -24,7 +23,28 @@ pub trait FirehoseAdaptor {
 }
 
 impl Client {
-    /// On every new site event, call callback. Explode if the callback explodes.
+    /// On every new site event, call methods on the callback. Explode if the callback explodes.
+    ///
+    /// Here is an example Adaptor implementation:
+    ///
+    /// ```rust
+    /// use async_trait::async_trait;
+    /// use furbooru::*;
+    /// struct Adaptor;
+    ///
+    /// #[async_trait]
+    /// impl furbooru::FirehoseAdaptor for Adaptor {
+    ///   async fn image_created(&self, img: Image) -> Result<()> {
+    ///     println!("new image: {} {} {}", img.id, img.name, img.view_url);
+    ///     Ok(())
+    ///   }
+    ///
+    ///   async fn comment_created(&self, cmt: Comment) -> Result<()> {
+    ///     println!("new comment on image {}: {}", cmt.image_id, cmt.body);
+    ///     Ok(())
+    ///   }
+    /// }
+    /// ```
     pub async fn firehose(&self, callback: impl FirehoseAdaptor + std::marker::Sync) -> Result<()>
     {
         let path = format!("{}socket/websocket?vsn=2.0.0", self.api_base);
