@@ -41,6 +41,8 @@ pub mod profile;
 pub mod tag;
 pub mod topic;
 
+pub use anyhow::Result;
+
 pub use comment::Comment;
 pub use filter::Filter;
 pub use firehose::{FirehoseAdaptor, Message};
