@@ -1,6 +1,6 @@
 use crate::*;
 use anyhow::Result;
-use core::future::Future;
+use async_trait::async_trait;
 use futures_util::{SinkExt, StreamExt};
 use http::{version::Version, Request};
 use tokio_tungstenite::{connect_async, tungstenite::protocol};
@@ -8,12 +8,24 @@ use tokio_tungstenite::{connect_async, tungstenite::protocol};
 const JOIN_EVENT: &'static str = r#"[0, 0, "firehose", "phx_join", {}]"#;
 const HEARTBEAT_EVENT: &'static str = r#"[0, 0, "phoenix", "heartbeat", {}]"#;
 
+#[async_trait]
+pub trait FirehoseAdaptor {
+    async fn image_created(&self, _img: Image) -> Result<()> {
+        Ok(())
+    }
+
+    async fn image_updated(&self, _img: Image) -> Result<()> {
+        Ok(())
+    }
+
+    async fn comment_created(&self, _cmt: Comment) -> Result<()> {
+        Ok(())
+    }
+}
+
 impl Client {
     /// On every new site event, call callback. Explode if the callback explodes.
-    pub async fn firehose<F, Fut>(&self, callback: F) -> Result<()>
-    where
-        F: Fn(Message) -> Fut,
-        Fut: Future<Output = Result<()>>,
+    pub async fn firehose(&self, callback: impl FirehoseAdaptor + std::marker::Sync) -> Result<()>
     {
         let path = format!("{}socket/websocket?vsn=2.0.0", self.api_base);
         let mut u = url::Url::parse(&path)?;
@@ -85,15 +97,15 @@ impl Client {
                         "phx_reply" => {}
                         "comment:create" => {
                             let cmt: comment::Response = serde_json::from_value(obj)?;
-                            callback(Message::CommentCreate(cmt.comment)).await?;
+                            callback.comment_created(cmt.comment).await?;
                         }
                         "image:create" => {
                             let img: image::Response = serde_json::from_value(obj)?;
-                            callback(Message::ImageCreate(img.image)).await?;
+                            callback.image_created(img.image).await?;
                         }
                         "image:update" => {
                             let img: image::Response = serde_json::from_value(obj)?;
-                            callback(Message::ImageUpdate(img.image)).await?;
+                            callback.image_updated(img.image).await?;
                         }
                         _ => continue,
                     };

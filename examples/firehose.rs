@@ -1,27 +1,26 @@
 use anyhow::Result;
-use furbooru::{Client, Message};
+use async_trait::async_trait;
+use furbooru::{Client, Image, Comment};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    pretty_env_logger::try_init()?;
     let cli = Client::new("firehose-example", &std::env::var("FURBOORU_API_KEY")?)?;
-    cli.firehose(callback).await?;
+    cli.firehose(Adaptor{}).await?;
 
     Ok(())
 }
 
-async fn callback(msg: Message) -> Result<()> {
-    println!("{:?}", msg);
+struct Adaptor;
 
-    match msg {
-        Message::ImageCreate(img) => {
-            println!("new image: {} {} {}", img.id, img.name, img.view_url);
-        }
-        Message::CommentCreate(cmt) => {
-            println!("new comment on image {}: {}", cmt.image_id, cmt.body);
-        }
-        _ => {}
+#[async_trait]
+impl furbooru::FirehoseAdaptor for Adaptor {
+    async fn image_created(&self, img: Image) -> Result<()> {
+        println!("new image: {} {} {}", img.id, img.name, img.view_url);
+        Ok(())
     }
 
-    Ok(())
+    async fn comment_created(&self, cmt: Comment) -> Result<()> {
+        println!("new comment on image {}: {}", cmt.image_id, cmt.body);
+        Ok(())
+    }
 }

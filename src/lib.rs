@@ -43,7 +43,7 @@ pub mod topic;
 
 pub use comment::Comment;
 pub use filter::Filter;
-pub use firehose::Message;
+pub use firehose::{FirehoseAdaptor, Message};
 pub use forum::Forum;
 pub use image::{Image, Intensities, Representations};
 pub use post::Post;
