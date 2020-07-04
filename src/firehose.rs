@@ -3,6 +3,7 @@ use async_trait::async_trait;
 use futures_util::{SinkExt, StreamExt};
 use http::{version::Version, Request};
 use tokio_tungstenite::{connect_async, tungstenite::protocol};
+use serde::{Serialize, Deserialize};
 
 const JOIN_EVENT: &'static str = r#"[0, 0, "firehose", "phx_join", {}]"#;
 const HEARTBEAT_EVENT: &'static str = r#"[0, 0, "phoenix", "heartbeat", {}]"#;
@@ -18,6 +19,10 @@ pub trait FirehoseAdaptor {
     }
 
     async fn comment_created(&self, _cmt: Comment) -> Result<()> {
+        Ok(())
+    }
+
+    async fn post_created(&self, _frm: Forum, _top: Topic, _pst: Post) -> Result<()> {
         Ok(())
     }
 }
@@ -127,6 +132,10 @@ impl Client {
                             let img: image::Response = serde_json::from_value(obj)?;
                             callback.image_updated(img.image).await?;
                         }
+                        "post:create" => {
+                            let ptf: ForumPost = serde_json::from_value(obj)?;
+                            callback.post_created(ptf.forum, ptf.topic, ptf.post).await?;
+                        }
                         _ => continue,
                     };
                 }
@@ -136,6 +145,13 @@ impl Client {
 
         Ok(())
     }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+struct ForumPost {
+    forum: Forum,
+    topic: Topic,
+    post: Post,
 }
 
 /// A firehose message.

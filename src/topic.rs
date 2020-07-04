@@ -14,7 +14,7 @@ struct Response {
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Topic {
     pub author: String,
-    pub last_replied_to_at: String,
+    pub last_replied_to_at: Option<String>,
     pub locked: bool,
     pub post_count: i64,
     pub slug: String,

@@ -1,6 +1,5 @@
-use anyhow::Result;
 use async_trait::async_trait;
-use furbooru::{Client, Image, Comment};
+use furbooru::{Client, Image, Comment, Forum, Result, Topic, Post};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -21,6 +20,12 @@ impl furbooru::FirehoseAdaptor for Adaptor {
 
     async fn comment_created(&self, cmt: Comment) -> Result<()> {
         println!("new comment on image {}: {}", cmt.image_id, cmt.body);
+        Ok(())
+    }
+
+    async fn post_created(&self, frm: Forum, top: Topic, pst: Post) -> Result<()> {
+        // https://furbooru.org/forums/art/topics/nsfw-artists-group-chat?post_id=433#post_433
+        println!("new forum post: https://furbooru.org/forums/{forum}/topics/{topic}?post_id={post}#post_{post}", forum=frm.short_name, topic=top.slug, post=pst.id);
         Ok(())
     }
 }
