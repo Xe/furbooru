@@ -22,7 +22,7 @@ pub struct Post {
     pub edited_at: Option<String>,
     pub id: i64,
     pub updated_at: String,
-    pub user_id: i64,
+    pub user_id: Option<i64>,
 }
 
 impl crate::Client {
