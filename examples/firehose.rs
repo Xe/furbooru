@@ -1,10 +1,10 @@
 use async_trait::async_trait;
-use furbooru::{Client, Image, Comment, Forum, Result, Topic, Post};
+use furbooru::{Client, Comment, Forum, Image, Post, Result, Topic};
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Client::new("firehose-example", &std::env::var("FURBOORU_API_KEY")?)?;
-    cli.firehose(Adaptor{}).await?;
+    cli.firehose(Adaptor {}).await?;
 
     Ok(())
 }
