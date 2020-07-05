@@ -2,29 +2,112 @@ use crate::*;
 use async_trait::async_trait;
 use futures_util::{SinkExt, StreamExt};
 use http::{version::Version, Request};
+use serde::{Deserialize, Serialize};
 use tokio_tungstenite::{connect_async, tungstenite::protocol};
-use serde::{Serialize, Deserialize};
 
 const JOIN_EVENT: &'static str = r#"[0, 0, "firehose", "phx_join", {}]"#;
 const HEARTBEAT_EVENT: &'static str = r#"[0, 0, "phoenix", "heartbeat", {}]"#;
 
+/// This trait contains a series of hooks that will be called in response to various
+/// firehose events.
+///
+/// You do not need to implement all of these hooks, just implement the ones that are
+/// important for your application.
 #[async_trait]
 pub trait FirehoseAdaptor {
+    /// This responds to the `image:create` event, which fires when a new image is created.
     async fn image_created(&self, _img: Image) -> Result<()> {
         Ok(())
     }
 
+    /// This responds to the `image:description_update` event, which fires when the
+    /// description of an image is updated.
+    async fn image_description_updated(
+        &self,
+        _image_id: u64,
+        _added: String,
+        _removed: String,
+    ) -> Result<()> {
+        Ok(())
+    }
+
+    /// This responds to the `image:process` event, which fires after an image is
+    /// finished processing.
+    async fn image_processed(&self, _id: u64) -> Result<()> {
+        Ok(())
+    }
+
+    /// This responds to the `image:source_update` event, which fires after the source
+    /// of an image is updated.
+    async fn image_source_updated(
+        &self,
+        _id: u64,
+        _added: Vec<String>,
+        _removed: Vec<String>,
+    ) -> Result<()> {
+        Ok(())
+    }
+
+    /// This responds to the `image:tag_update` event, which fires after the tags of
+    /// an image have been updated.
+    async fn image_tag_updated(
+        &self,
+        _id: u64,
+        _added: Vec<String>,
+        _removed: Vec<String>,
+    ) -> Result<()> {
+        Ok(())
+    }
+
+    /// This responds to the `image:update` event, which fires after an image has been
+    /// updated.
     async fn image_updated(&self, _img: Image) -> Result<()> {
         Ok(())
     }
 
+    /// This responds to the `comment:create` event, which fires after a comment has been
+    /// created.
     async fn comment_created(&self, _cmt: Comment) -> Result<()> {
         Ok(())
     }
 
+    /// This responds to the `comment:update` event, which fires after a comment has been
+    /// updated.
+    async fn comment_updated(&self, _cmt: Comment) -> Result<()> {
+        Ok(())
+    }
+
+    /// This responds to the `post:create` event, which fires after a forum post has been
+    /// created.
     async fn post_created(&self, _frm: Forum, _top: Topic, _pst: Post) -> Result<()> {
         Ok(())
     }
+}
+
+#[derive(Deserialize, Clone, Debug)]
+struct ImageProcessedEvent {
+    image_id: u64,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+struct ImageTagUpdatedEvent {
+    image_id: u64,
+    added: Vec<String>,
+    removed: Vec<String>,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+struct ImageDescriptionUpdateEvent {
+    image_id: u64,
+    added: String,
+    removed: String,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+struct ImageSourceUpdateEvent {
+    image_id: u64,
+    added: Vec<String>,
+    removed: Vec<String>,
 }
 
 impl Client {
@@ -50,8 +133,7 @@ impl Client {
     ///   }
     /// }
     /// ```
-    pub async fn firehose(&self, callback: impl FirehoseAdaptor + std::marker::Sync) -> Result<()>
-    {
+    pub async fn firehose(&self, callback: impl FirehoseAdaptor + std::marker::Sync) -> Result<()> {
         let path = format!("{}socket/websocket?vsn=2.0.0", self.api_base);
         let mut u = url::Url::parse(&path)?;
         u.set_scheme("wss").unwrap();
@@ -124,9 +206,35 @@ impl Client {
                             let cmt: comment::Response = serde_json::from_value(obj)?;
                             callback.comment_created(cmt.comment).await?;
                         }
+                        "comment:update" => {
+                            let cmt: comment::Response = serde_json::from_value(obj)?;
+                            callback.comment_updated(cmt.comment).await?;
+                        }
                         "image:create" => {
                             let img: image::Response = serde_json::from_value(obj)?;
                             callback.image_created(img.image).await?;
+                        }
+                        "image:description_update" => {
+                            let idue: ImageDescriptionUpdateEvent = serde_json::from_value(obj)?;
+                            callback
+                                .image_description_updated(idue.image_id, idue.added, idue.removed)
+                                .await?;
+                        }
+                        "image:process" => {
+                            let ipe: ImageProcessedEvent = serde_json::from_value(obj)?;
+                            callback.image_processed(ipe.image_id).await?;
+                        }
+                        "image:source_update" => {
+                            let isue: ImageSourceUpdateEvent = serde_json::from_value(obj)?;
+                            callback
+                                .image_source_updated(isue.image_id, isue.added, isue.removed)
+                                .await?;
+                        }
+                        "image:tag_update" => {
+                            let itue: ImageTagUpdatedEvent = serde_json::from_value(obj)?;
+                            callback
+                                .image_tag_updated(itue.image_id, itue.added, itue.removed)
+                                .await?;
                         }
                         "image:update" => {
                             let img: image::Response = serde_json::from_value(obj)?;
@@ -134,9 +242,13 @@ impl Client {
                         }
                         "post:create" => {
                             let ptf: ForumPost = serde_json::from_value(obj)?;
-                            callback.post_created(ptf.forum, ptf.topic, ptf.post).await?;
+                            callback
+                                .post_created(ptf.forum, ptf.topic, ptf.post)
+                                .await?;
                         }
-                        _ => continue,
+                        _ => {
+                            log::info!("unknown event {}: {}", event, serde_json::to_string(&obj)?);
+                        }
                     };
                 }
                 _ => continue,
