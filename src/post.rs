@@ -14,7 +14,7 @@ pub(crate) struct ResponseList {
 /// A forum post
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Post {
-    pub author: Option<String>,
+    pub author: String,
     pub avatar: String,
     pub body: String,
     pub created_at: String,
