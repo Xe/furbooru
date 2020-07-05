@@ -203,49 +203,115 @@ impl Client {
                     match event {
                         "phx_reply" => {}
                         "comment:create" => {
-                            let cmt: comment::Response = serde_json::from_value(obj)?;
-                            callback.comment_created(cmt.comment).await?;
+                            match serde_json::from_value::<comment::Response>(obj) {
+                                Ok(cmt) => callback.comment_created(cmt.comment).await?,
+                                Err(why) => log::error!(
+                                    "bad json: {} {}: {:?} {}",
+                                    kind,
+                                    event,
+                                    why,
+                                    val[4]
+                                ),
+                            };
                         }
                         "comment:update" => {
-                            let cmt: comment::Response = serde_json::from_value(obj)?;
-                            callback.comment_updated(cmt.comment).await?;
+                            match serde_json::from_value::<comment::Response>(obj) {
+                                Ok(cmt) => callback.comment_updated(cmt.comment).await?,
+                                Err(why) => log::error!(
+                                    "bad json: {} {}: {:?} {}",
+                                    kind,
+                                    event,
+                                    why,
+                                    val[4]
+                                ),
+                            };
                         }
-                        "image:create" => {
-                            let img: image::Response = serde_json::from_value(obj)?;
-                            callback.image_created(img.image).await?;
-                        }
+                        "image:create" => match serde_json::from_value::<image::Response>(obj) {
+                            Ok(img) => callback.image_created(img.image).await?,
+                            Err(why) => {
+                                log::error!("bad json: {} {}: {:?} {}", kind, event, why, val[4])
+                            }
+                        },
                         "image:description_update" => {
-                            let idue: ImageDescriptionUpdateEvent = serde_json::from_value(obj)?;
-                            callback
-                                .image_description_updated(idue.image_id, idue.added, idue.removed)
-                                .await?;
+                            match serde_json::from_value::<ImageDescriptionUpdateEvent>(obj) {
+                                Ok(idue) => {
+                                    callback
+                                        .image_description_updated(
+                                            idue.image_id,
+                                            idue.added,
+                                            idue.removed,
+                                        )
+                                        .await?
+                                }
+                                Err(why) => log::error!(
+                                    "bad json: {} {}: {:?} {}",
+                                    kind,
+                                    event,
+                                    why,
+                                    val[4]
+                                ),
+                            }
                         }
-                        "image:process" => {
-                            let ipe: ImageProcessedEvent = serde_json::from_value(obj)?;
-                            callback.image_processed(ipe.image_id).await?;
-                        }
+                        "image:process" => match serde_json::from_value::<ImageProcessedEvent>(obj)
+                        {
+                            Ok(ipe) => callback.image_processed(ipe.image_id).await?,
+                            Err(why) => {
+                                log::error!("bad json: {} {}: {:?} {}", kind, event, why, val[4])
+                            }
+                        },
                         "image:source_update" => {
-                            let isue: ImageSourceUpdateEvent = serde_json::from_value(obj)?;
-                            callback
-                                .image_source_updated(isue.image_id, isue.added, isue.removed)
-                                .await?;
+                            match serde_json::from_value::<ImageSourceUpdateEvent>(obj) {
+                                Ok(isue) => {
+                                    callback
+                                        .image_source_updated(
+                                            isue.image_id,
+                                            isue.added,
+                                            isue.removed,
+                                        )
+                                        .await?
+                                }
+                                Err(why) => log::error!(
+                                    "bad json: {} {}: {:?} {}",
+                                    kind,
+                                    event,
+                                    why,
+                                    val[4]
+                                ),
+                            }
                         }
+
                         "image:tag_update" => {
-                            let itue: ImageTagUpdatedEvent = serde_json::from_value(obj)?;
-                            callback
-                                .image_tag_updated(itue.image_id, itue.added, itue.removed)
-                                .await?;
+                            match serde_json::from_value::<ImageTagUpdatedEvent>(obj) {
+                                Ok(itue) => {
+                                    callback
+                                        .image_tag_updated(itue.image_id, itue.added, itue.removed)
+                                        .await?
+                                }
+                                Err(why) => log::error!(
+                                    "bad json: {} {}: {:?} {}",
+                                    kind,
+                                    event,
+                                    why,
+                                    val[4]
+                                ),
+                            }
                         }
-                        "image:update" => {
-                            let img: image::Response = serde_json::from_value(obj)?;
-                            callback.image_updated(img.image).await?;
-                        }
-                        "post:create" => {
-                            let ptf: ForumPost = serde_json::from_value(obj)?;
-                            callback
-                                .post_created(ptf.forum, ptf.topic, ptf.post)
-                                .await?;
-                        }
+                        "image:update" => match serde_json::from_value::<image::Response>(obj) {
+                            Ok(img) => callback.image_updated(img.image).await?,
+                            Err(why) => {
+                                log::error!("bad json: {} {}: {:?} {}", kind, event, why, val[4])
+                            }
+                        },
+                        "post:create" => match serde_json::from_value::<ForumPost>(obj) {
+                            Ok(ptf) => {
+                                callback
+                                    .post_created(ptf.forum, ptf.topic, ptf.post)
+                                    .await?
+                            }
+                            Err(why) => {
+                                log::error!("bad json: {} {}: {:?} {}", kind, event, why, val[4])
+                            }
+                        },
                         _ => {
                             log::info!("unknown event {}: {}", event, serde_json::to_string(&obj)?);
                         }
