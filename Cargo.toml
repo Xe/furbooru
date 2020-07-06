@@ -29,3 +29,8 @@ url = "2"
 httptest = "0"
 log = "0"
 pretty_env_logger = "0"
+
+[workspace]
+members = [
+  "./contrib/lua"
+]

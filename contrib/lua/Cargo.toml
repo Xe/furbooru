@@ -1,0 +1,18 @@
+[package]
+name = "luafurbooru"
+version = "0.1.0"
+authors = ["Christine Dodrill <me@christine.website>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+mlua = { version = "0.4", features = ["lua53", "module", "async", "send"] }
+mlua_derive = "0.4"
+mlua_serde = { version = "0.5", features = ["lua53"] }
+serde = { version = "1.0", features = ["derive"] }
+
+furbooru = { path = "../.." }
