@@ -47,7 +47,7 @@ pub use comment::Comment;
 pub use filter::Filter;
 pub use firehose::{FirehoseAdaptor, Message};
 pub use forum::Forum;
-pub use image::{Image, Intensities, Representations};
+pub use image::{Image, ImageMeta, Intensities, Representations};
 pub use post::Post;
 pub use profile::{Award, Link, User};
 pub use tag::Tag;

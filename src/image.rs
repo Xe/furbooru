@@ -12,6 +12,13 @@ pub(crate) struct ResponseList {
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ImageMeta {
+    pub description: String,
+    pub tag_input: String,
+    pub source_url: String,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Image {
     pub name: String,
     pub faves: i64,
@@ -109,6 +116,42 @@ impl crate::Client {
         let resp: ResponseList = req.send().await?.error_for_status()?.json().await?;
 
         Ok(resp.images)
+    }
+
+    /// Upload an image to the booru.
+    ///
+    /// Test this call with a custom instance of philomena. Abuse of this call will
+    /// likely result in a ban from the booru you are posting things to.
+    pub async fn post_image(&self, image_url: String, im: ImageMeta) -> Result<Image> {
+        self.cli.get(&image_url).send().await?.error_for_status()?;
+
+        #[derive(Serialize)]
+        struct CreateImage {
+            url: String,
+            image: ImageMeta,
+        }
+
+        let resp = self
+            .request(reqwest::Method::POST, "api/v1/json/images")
+            .json(&CreateImage {
+                url: image_url,
+                image: im,
+            })
+            .send()
+            .await?;
+
+        match (&resp).error_for_status_ref() {
+            Ok(_) => {
+                let bytes = resp.bytes().await?;
+                log::debug!("body: {}", std::str::from_utf8(&bytes)?);
+                Ok(serde_json::from_slice::<Response>(&bytes)?.image)
+            }
+            Err(why) => {
+                log::debug!("error: {:?}", why);
+                log::debug!("body: {}", resp.text().await?);
+                Err(why.into())
+            }
+        }
     }
 }
 
