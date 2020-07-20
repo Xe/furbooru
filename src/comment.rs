@@ -42,6 +42,37 @@ impl crate::Client {
         Ok(resp.comment)
     }
 
+    /// Create a new comment for a given image
+    pub async fn create_comment(
+        &self,
+        image_id: u64,
+        body: String,
+        anonymous: bool,
+    ) -> Result<Comment> {
+        #[derive(Default, Serialize, Debug, Clone)]
+        struct MakeComment {
+            body: String,
+            anonymous: bool,
+        }
+
+        let resp: Response = self
+            .request(
+                reqwest::Method::POST,
+                &format!("api/v1/json/images/{}/comments", image_id),
+            )
+            .json(&MakeComment {
+                body: body,
+                anonymous: anonymous,
+            })
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?;
+
+        Ok(resp.comment)
+    }
+
     /// Search for comments.
     pub async fn comment_search<T: Into<String>>(
         &self,
@@ -79,6 +110,22 @@ mod tests {
         let cli =
             crate::Client::with_baseurl("test", "42069", &format!("{}", server.url("/"))).unwrap();
         cli.comment(1).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn create_comment() {
+        let _ = pretty_env_logger::try_init();
+        let data: serde_json::Value =
+            serde_json::from_slice(include_bytes!("../testdata/comment_1.json")).unwrap();
+        let server = Server::run();
+        server.expect(
+            Expectation::matching(request::method_path("POST", "/api/v1/json/images/1/comments"))
+                .respond_with(json_encoded(data)),
+        );
+
+        let cli =
+            crate::Client::with_baseurl("test", "42069", &format!("{}", server.url("/"))).unwrap();
+        cli.create_comment(1, "Hey what's up guys its scarce here".to_string(), false).await.unwrap();
     }
 
     #[tokio::test]
