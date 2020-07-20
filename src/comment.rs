@@ -55,14 +55,21 @@ impl crate::Client {
             anonymous: bool,
         }
 
+        #[derive(Default, Serialize, Debug, Clone)]
+        struct Body {
+            comment: MakeComment,
+        }
+
         let resp: Response = self
             .request(
                 reqwest::Method::POST,
                 &format!("api/v1/json/images/{}/comments", image_id),
             )
-            .json(&MakeComment {
-                body: body,
-                anonymous: anonymous,
+            .json(&Body {
+                comment: MakeComment {
+                    body: body,
+                    anonymous: anonymous,
+                },
             })
             .send()
             .await?
@@ -119,13 +126,18 @@ mod tests {
             serde_json::from_slice(include_bytes!("../testdata/comment_1.json")).unwrap();
         let server = Server::run();
         server.expect(
-            Expectation::matching(request::method_path("POST", "/api/v1/json/images/1/comments"))
-                .respond_with(json_encoded(data)),
+            Expectation::matching(request::method_path(
+                "POST",
+                "/api/v1/json/images/1/comments",
+            ))
+            .respond_with(json_encoded(data)),
         );
 
         let cli =
             crate::Client::with_baseurl("test", "42069", &format!("{}", server.url("/"))).unwrap();
-        cli.create_comment(1, "Hey what's up guys its scarce here".to_string(), false).await.unwrap();
+        cli.create_comment(1, "Hey what's up guys its scarce here".to_string(), false)
+            .await
+            .unwrap();
     }
 
     #[tokio::test]
