@@ -55,6 +55,11 @@ impl crate::Client {
             anonymous: bool,
         }
 
+        #[derive(Serialize, Clone)]
+        struct Body {
+            post: MakePost,
+        }
+
         let resp: Response = self
             .request(
                 reqwest::Method::POST,
@@ -64,9 +69,11 @@ impl crate::Client {
                     thread.into()
                 ),
             )
-            .json(&MakePost {
-                body: body,
-                anonymous: anonymous,
+            .json(&Body {
+                post: MakePost {
+                    body: body,
+                    anonymous: anonymous,
+                },
             })
             .send()
             .await?
