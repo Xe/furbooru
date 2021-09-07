@@ -165,7 +165,7 @@ impl Client {
                     log::error!("error sending heartbeat: {:?}", why);
                     return;
                 }
-                tokio::time::delay_for(thirty_seconds).await;
+                tokio::time::sleep(thirty_seconds).await;
             }
         });
 
