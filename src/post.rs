@@ -38,6 +38,51 @@ impl crate::Client {
         Ok(resp.post)
     }
 
+    /// Creates a new forum post with the given parameters.
+    pub async fn create_post<T>(
+        &self,
+        forum: T,
+        thread: T,
+        body: String,
+        anonymous: bool,
+    ) -> Result<Post>
+    where
+        T: Into<String>,
+    {
+        #[derive(Serialize, Clone)]
+        struct MakePost {
+            body: String,
+            anonymous: bool,
+        }
+
+        #[derive(Serialize, Clone)]
+        struct Body {
+            post: MakePost,
+        }
+
+        let resp: Response = self
+            .request(
+                reqwest::Method::POST,
+                &format!(
+                    "api/v1/json/forums/{}/topics/{}/posts",
+                    forum.into(),
+                    thread.into()
+                ),
+            )
+            .json(&Body {
+                post: MakePost {
+                    body: body,
+                    anonymous: anonymous,
+                },
+            })
+            .send()
+            .await?
+            .error_for_status()?
+            .json()
+            .await?;
+        Ok(resp.post)
+    }
+
     /// Fetches page n of posts in a thread in a forum.
     pub async fn forum_thread<T: Into<String>>(
         &self,
@@ -81,6 +126,27 @@ mod tests {
         let cli =
             crate::Client::with_baseurl("test", "42069", &format!("{}", server.url("/"))).unwrap();
         cli.post(1002).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn create_post() {
+        let _ = pretty_env_logger::try_init();
+        let data: serde_json::Value =
+            serde_json::from_slice(include_bytes!("../testdata/post_1002.json")).unwrap();
+        let server = Server::run();
+        server.expect(
+            Expectation::matching(request::method_path(
+                "POST",
+                "/api/v1/json/forums/dis/topics/ask-the-mods-anything/posts",
+            ))
+            .respond_with(json_encoded(data)),
+        );
+
+        let cli =
+            crate::Client::with_baseurl("test", "42069", &format!("{}", server.url("/"))).unwrap();
+        cli.create_post("dis", "ask-the-mods-anything", "Hi there".into(), false)
+            .await
+            .unwrap();
     }
 
     #[tokio::test]
